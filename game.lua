@@ -1,0 +1,72 @@
+local Player = require("player")
+local CollectableManager = require("collectables").CollectableManager
+local ZoneManager = require("zones.zone_manager")
+local UpgradeZone = require("zones.upgrade_zone")
+local BuildZone = require("zones.build_zone")
+local BotManager = require("bots.bot_manager")
+
+local Game = {}
+Game.__index = Game
+
+function Game.new()
+    local self = setmetatable({}, Game)
+    
+    self.player = Player.new()
+    self.collectable_manager = CollectableManager.new()
+    self.zone_manager = ZoneManager.new()
+    self.bot_manager = BotManager.new()
+    
+    local upgrade_zone = UpgradeZone.new(
+        100, 100, 120, 80, 50,
+        "Upgrade Capacity",
+        {1, 0.8, 0.2},
+        5.0
+    )
+    self.zone_manager:addZone(upgrade_zone)
+    
+    local build_zone = BuildZone.new(
+        300, 150, 100, 60, 30,
+        "Build Something",
+        {0.2, 0.8, 0.4}
+    )
+    self.zone_manager:addZone(build_zone)
+    
+    self.bot_manager:addBot(150, 200)
+    
+    return self
+end
+
+function Game:update(dt)
+    self.player:update(dt)
+    
+    local coins_collected = self.collectable_manager:update(
+        dt,
+        self.player.x,
+        self.player.y,
+        self.player.collection_radius,
+        self.player.capacity,
+        self.player.carried_coins
+    )
+    
+    self.player:addCoins(coins_collected)
+    
+    self.zone_manager:update(dt, self.player)
+    
+    self.bot_manager:update(dt, self.collectable_manager, self.zone_manager)
+end
+
+function Game:draw()
+    love.graphics.setColor(18/255, 18/255, 22/255)
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getDimensions())
+    
+    self.zone_manager:draw()
+    self.collectable_manager:draw()
+    self.player:draw()
+    self.bot_manager:draw()
+    
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print(string.format("Coins: %.0f/%.0f", self.player.carried_coins, self.player.capacity), 10, 10)
+    love.graphics.print("WASD to move, ESC to quit", 10, 30)
+end
+
+return Game
