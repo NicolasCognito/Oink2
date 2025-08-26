@@ -1,18 +1,13 @@
 local StateMachine = require("utils.state_machine")
+local Character = require("character")
 
 local Bot = {}
 Bot.__index = Bot
+setmetatable(Bot, {__index = Character})
 
 function Bot.new(x, y)
-    local self = setmetatable({}, Bot)
-    self.x = x or 200
-    self.y = y or 200
-    self.radius = 15
-    self.speed = 120.0
-    self.carried_coins = 0
-    self.capacity = 5.0
-    self.color = {255/255, 165/255, 0/255}
-    self.collection_radius = 35
+    local self = Character.new(x or 200, y or 200, 15, 120.0, 5.0, 35, {255/255, 165/255, 0/255})
+    setmetatable(self, Bot)
     
     self.target_x = self.x
     self.target_y = self.y
@@ -73,7 +68,7 @@ function Bot:setupStates()
                 self.carried_coins = self.carried_coins - spend_amount
                 
                 if self.target_zone.progress >= self.target_zone.cost then
-                    self.target_zone:onComplete({spendCoins = function() end, upgradeCapacity = function() end})
+                    self.target_zone:onComplete(self)
                 end
             end
             

@@ -1,4 +1,5 @@
 local Zone = require("zones.base_zone")
+local Services = require("utils.services")
 
 local UpgradeZone = {}
 UpgradeZone.__index = UpgradeZone
@@ -15,7 +16,13 @@ function UpgradeZone.new(x, y, width, height, cost, label, color, capacity_upgra
     return self
 end
 
-function UpgradeZone:onComplete(player)
+function UpgradeZone:onComplete(character)
+    -- Always upgrade the player, regardless of who completed the zone
+    local player = Services.character_manager:getPlayer()
+    if not player then
+        return -- No player to upgrade
+    end
+    
     local mode = self.modes[self.mode_index] or "capacity"
     if mode == "capacity" then
         player:upgradeCapacity(self.capacity_upgrade)

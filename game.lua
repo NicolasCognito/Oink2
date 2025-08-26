@@ -1,4 +1,3 @@
-local Player = require("player")
 local CollectableManager = require("collectables").CollectableManager
 local ZoneManager = require("zones.zone_manager")
 local UpgradeZone = require("zones.upgrade_zone")
@@ -12,7 +11,7 @@ Game.__index = Game
 function Game.new()
     local self = setmetatable({}, Game)
     
-    self.player = Player.new()
+    self.player = Services.character_manager:createPlayer()
     self.collectable_manager = CollectableManager.new()
     self.zone_manager = ZoneManager.new()
     self.bot_manager = BotManager.new()
@@ -33,7 +32,7 @@ function Game.new()
     )
     self.zone_manager:addZone(build_zone)
     
-    self.bot_manager:addBot(150, 200)
+    Services.character_manager:createBot(150, 200)
     
     return self
 end

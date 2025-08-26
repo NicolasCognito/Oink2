@@ -1,4 +1,4 @@
-local Bot = require("bots.base_bot")
+local Services = require("utils.services")
 
 local BotManager = {}
 BotManager.__index = BotManager
@@ -10,7 +10,7 @@ function BotManager.new()
 end
 
 function BotManager:addBot(x, y)
-    local bot = Bot.new(x, y)
+    local bot = Services.character_manager:createBot(x, y)
     table.insert(self.bots, bot)
     return bot
 end
@@ -19,6 +19,7 @@ function BotManager:removeBot(bot)
     for i, b in ipairs(self.bots) do
         if b == bot then
             table.remove(self.bots, i)
+            Services.character_manager:removeCharacter(bot)
             break
         end
     end
