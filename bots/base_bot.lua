@@ -77,6 +77,22 @@ function Bot:setupStates()
                 end
             end
             
+            -- If the zone is completed or cannot accept more, move on.
+            if self.target_zone.completed or self.target_zone.progress >= self.target_zone.cost then
+                if self.carried_coins > 0 then
+                    -- Try another zone; otherwise go idle to collect more
+                    local next_zone = self:findNearestZone()
+                    if next_zone and next_zone ~= self.target_zone then
+                        self.target_zone = next_zone
+                        self.state_machine:setState("moving_to_zone")
+                        return
+                    end
+                end
+                self.target_zone = nil
+                self.state_machine:setState("idle")
+                return
+            end
+
             if self.carried_coins == 0 then
                 self.target_zone = nil
                 self.state_machine:setState("idle")

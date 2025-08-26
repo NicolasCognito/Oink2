@@ -4,6 +4,7 @@ local ZoneManager = require("zones.zone_manager")
 local UpgradeZone = require("zones.upgrade_zone")
 local BuildZone = require("zones.build_zone")
 local BotManager = require("bots.bot_manager")
+local Services = require("utils.services")
 
 local Game = {}
 Game.__index = Game
@@ -15,6 +16,7 @@ function Game.new()
     self.collectable_manager = CollectableManager.new()
     self.zone_manager = ZoneManager.new()
     self.bot_manager = BotManager.new()
+    Services.bot_manager = self.bot_manager
     
     local upgrade_zone = UpgradeZone.new(
         100, 100, 120, 80, 50,
@@ -26,7 +28,7 @@ function Game.new()
     
     local build_zone = BuildZone.new(
         300, 150, 100, 60, 30,
-        "Build Something",
+        "Build Bot",
         {0.2, 0.8, 0.4}
     )
     self.zone_manager:addZone(build_zone)
@@ -67,6 +69,16 @@ function Game:draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.print(string.format("Coins: %.0f/%.0f", self.player.carried_coins, self.player.capacity), 10, 10)
     love.graphics.print("WASD to move, ESC to quit", 10, 30)
+end
+
+function Game:cycleZoneMode(delta)
+    if not self.zone_manager or not self.zone_manager.zones then return end
+    for _, zone in ipairs(self.zone_manager.zones) do
+        if self.player:isInZone(zone) and zone.cycleMode then
+            zone:cycleMode(delta)
+            break
+        end
+    end
 end
 
 return Game

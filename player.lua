@@ -13,6 +13,7 @@ function Player.new(x, y)
     self.color = {64/255, 224/255, 208/255}
     
     self.collection_radius = 40
+    self.auto_spend = true
     
     return self
 end

@@ -20,7 +20,15 @@ function love.draw()
 end
 
 function love.keypressed(key)
-    if key == "escape" or key == "q" then
+    if key == "escape" then
         love.event.quit()
+    elseif key == "q" then
+        if game and game.cycleZoneMode then game:cycleZoneMode(-1) end
+    elseif key == "e" then
+        if game and game.cycleZoneMode then game:cycleZoneMode(1) end
+    elseif key == "space" then
+        if game and game.player then
+            game.player.auto_spend = not game.player.auto_spend
+        end
     end
 end
