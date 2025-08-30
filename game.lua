@@ -2,7 +2,6 @@ local CollectableManager = require("collectables").CollectableManager
 local ZoneManager = require("zones.zone_manager")
 local UpgradeZone = require("zones.upgrade_zone")
 local BuildZone = require("zones.build_zone")
-local BotManager = require("bots.bot_manager")
 local Services = require("utils.services")
 
 local Game = {}
@@ -14,8 +13,7 @@ function Game.new()
     self.player = Services.character_manager:createPlayer()
     self.collectable_manager = CollectableManager.new()
     self.zone_manager = ZoneManager.new()
-    self.bot_manager = BotManager.new()
-    Services.bot_manager = self.bot_manager
+    self.bot_manager = Services.bot_manager
     
     local upgrade_zone = UpgradeZone.new(
         100, 100, 120, 80, 50,
@@ -32,7 +30,7 @@ function Game.new()
     )
     self.zone_manager:addZone(build_zone)
     
-    Services.character_manager:createBot(150, 200)
+    self.bot_manager:addBot(150, 200)
     self.bot_manager:addChicken(400, 300)
     
     return self
@@ -41,7 +39,7 @@ end
 function Game:update(dt)
     self.player:update(dt)
     
-    local coins_collected = self.collectable_manager:update(
+    local collected_item = self.collectable_manager:update(
         dt,
         self.player.x,
         self.player.y,
@@ -50,7 +48,13 @@ function Game:update(dt)
         self.player.carried_coins
     )
     
-    self.player:addCoins(coins_collected)
+    if collected_item then
+        if collected_item.type == "coin" then
+            self.player:addCoins(collected_item.value)
+        elseif collected_item.type == "egg" then
+            self.player:addItem("eggs", collected_item.value)
+        end
+    end
     
     self.zone_manager:update(dt, self.player)
     
@@ -68,7 +72,8 @@ function Game:draw()
     
     love.graphics.setColor(1, 1, 1)
     love.graphics.print(string.format("Coins: %.0f/%.0f", self.player.carried_coins, self.player.capacity), 10, 10)
-    love.graphics.print("WASD to move, ESC to quit", 10, 30)
+    love.graphics.print(string.format("Eggs: %d", self.player:getItemCount("eggs")), 10, 30)
+    love.graphics.print("WASD to move, ESC to quit", 10, 50)
 end
 
 function Game:cycleZoneMode(delta)

@@ -6,7 +6,7 @@ Bot.__index = Bot
 setmetatable(Bot, {__index = Character})
 
 function Bot.new(x, y)
-    local self = Character.new(x or 200, y or 200, 15, 120.0, 5.0, 35, {255/255, 165/255, 0/255})
+    local self = Character.new(x or 200, y or 200, 15, 120.0, 5.0, 35, {1, 0.75, 0.8})
     setmetatable(self, Bot)
     
     self.target_x = self.x
@@ -148,7 +148,7 @@ end
 
 function Bot:update(dt, collectable_manager, zone_manager)
     if collectable_manager then
-        local coins_collected = collectable_manager:update(
+        local collected_item = collectable_manager:update(
             dt,
             self.x,
             self.y,
@@ -156,7 +156,9 @@ function Bot:update(dt, collectable_manager, zone_manager)
             self.capacity,
             self.carried_coins
         )
-        self.carried_coins = math.min(self.capacity, self.carried_coins + coins_collected)
+        if collected_item and collected_item.type == "coin" then
+            self.carried_coins = math.min(self.capacity, self.carried_coins + collected_item.value)
+        end
     end
     
     if zone_manager then
@@ -170,8 +172,23 @@ function Bot:draw()
     love.graphics.setColor(self.color[1] * 0.3, self.color[2] * 0.3, self.color[3] * 0.3, 0.2)
     love.graphics.circle("line", self.x, self.y, self.collection_radius)
     
+    -- Pig body
     love.graphics.setColor(self.color)
     love.graphics.circle("fill", self.x, self.y, self.radius)
+    
+    -- Pig snout
+    love.graphics.setColor(self.color[1] * 0.8, self.color[2] * 0.8, self.color[3] * 0.8)
+    love.graphics.circle("fill", self.x, self.y + 3, 5)
+    
+    -- Pig nostrils
+    love.graphics.setColor(0.2, 0.2, 0.2)
+    love.graphics.circle("fill", self.x - 2, self.y + 3, 1)
+    love.graphics.circle("fill", self.x + 2, self.y + 3, 1)
+    
+    -- Pig eyes
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.circle("fill", self.x - 4, self.y - 3, 2)
+    love.graphics.circle("fill", self.x + 4, self.y - 3, 2)
     
     love.graphics.setColor(1, 1, 1)
     love.graphics.print(string.format("%.0f", self.carried_coins), self.x - 5, self.y - 20)

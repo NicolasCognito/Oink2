@@ -1,3 +1,5 @@
+local Inventory = require("inventory")
+
 local Character = {}
 Character.__index = Character
 
@@ -11,19 +13,30 @@ function Character.new(x, y, radius, speed, capacity, collection_radius, color)
     self.capacity = capacity or 5.0
     self.collection_radius = collection_radius or 35
     self.color = color or {1, 1, 1}
+    self.inventory = Inventory.new()
     return self
 end
 
 function Character:addCoins(amount)
     local added = math.min(amount, self.capacity - self.carried_coins)
     self.carried_coins = self.carried_coins + added
+    self.inventory:addItem("coins", added)
     return added
 end
 
 function Character:spendCoins(amount)
     local spent = math.min(amount, self.carried_coins)
     self.carried_coins = self.carried_coins - spent
+    self.inventory:removeItem("coins", spent)
     return spent
+end
+
+function Character:addItem(item_name, amount)
+    return self.inventory:addItem(item_name, amount)
+end
+
+function Character:getItemCount(item_name)
+    return self.inventory:getQuantity(item_name)
 end
 
 function Character:upgradeCapacity(amount)

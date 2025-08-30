@@ -68,15 +68,15 @@ function CollectableManager:update(dt, player_x, player_y, collection_radius, pl
         collectable:update(dt)
         
         if collectable:canCollect(player_x, player_y, collection_radius) and player_coins < player_capacity then
-            collectable:collect()
+            local value = collectable:collect()
             table.remove(self.collectables, i)
-            return 1
+            return {type = collectable.type, value = value}
         elseif collectable.collected then
             table.remove(self.collectables, i)
         end
     end
     
-    return 0
+    return nil
 end
 
 function CollectableManager:spawnCollectable()
