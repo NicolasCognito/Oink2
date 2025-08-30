@@ -15,6 +15,13 @@ function BotManager:addBot(x, y)
     return bot
 end
 
+function BotManager:addChicken(x, y)
+    local ChickenBot = require("bots.chicken_bot")
+    local chicken = ChickenBot.new(x, y)
+    table.insert(self.bots, chicken)
+    return chicken
+end
+
 function BotManager:removeBot(bot)
     for i, b in ipairs(self.bots) do
         if b == bot then
@@ -33,7 +40,7 @@ function BotManager:update(dt, collectable_manager, zone_manager)
                 local nearest_distance = math.huge
                 
                 for _, zone in ipairs(zone_manager.zones) do
-                    if not zone.completed and zone.progress < zone.cost then
+                    if zone.active and not zone.completed and zone.progress < zone.cost then
                         local zone_center_x = zone.x + zone.width / 2
                         local zone_center_y = zone.y + zone.height / 2
                         local distance = self:distanceTo(zone_center_x, zone_center_y)

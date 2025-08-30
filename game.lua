@@ -33,6 +33,7 @@ function Game.new()
     self.zone_manager:addZone(build_zone)
     
     Services.character_manager:createBot(150, 200)
+    self.bot_manager:addChicken(400, 300)
     
     return self
 end
@@ -75,6 +76,16 @@ function Game:cycleZoneMode(delta)
     for _, zone in ipairs(self.zone_manager.zones) do
         if self.player:isInZone(zone) and zone.cycleMode then
             zone:cycleMode(delta)
+            break
+        end
+    end
+end
+
+function Game:toggleZoneActive()
+    if not self.zone_manager or not self.zone_manager.zones then return end
+    for _, zone in ipairs(self.zone_manager.zones) do
+        if self.player:isInZone(zone) and zone.toggleActive then
+            zone:toggleActive()
             break
         end
     end

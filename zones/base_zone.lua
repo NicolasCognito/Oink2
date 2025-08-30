@@ -13,11 +13,13 @@ function Zone.new(x, y, width, height, cost, label, color)
     self.color = color or {1, 1, 1}
     self.completed = false
     self.spend_rate = 8.0
+    self.active = true
     return self
 end
 
 function Zone:update(dt, player)
-    if player:isInZone(self)
+    if self.active
+        and player:isInZone(self)
         and player.carried_coins > 0
         and self.progress < self.cost
         and player.auto_spend then
@@ -36,28 +38,45 @@ function Zone:cycleMode(delta)
     -- no-op in base
 end
 
+function Zone:toggleActive()
+    self.active = not self.active
+end
+
+function Zone:isActive()
+    return self.active
+end
+
 function Zone:onComplete(player)
     self.completed = true
 end
 
 function Zone:draw()
     local color = (self.getDisplayColor and self:getDisplayColor()) or self.color
-    love.graphics.setColor(color[1] * 0.3, color[2] * 0.3, color[3] * 0.3)
+    
+    -- Dim inactive zones
+    local alpha = self.active and 1.0 or 0.3
+    
+    love.graphics.setColor(color[1] * 0.3 * alpha, color[2] * 0.3 * alpha, color[3] * 0.3 * alpha)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
     
-    love.graphics.setColor(color)
+    love.graphics.setColor(color[1] * alpha, color[2] * alpha, color[3] * alpha)
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
     
     if self.progress > 0 and not self.completed then
         local progress_width = (self.progress / self.cost) * self.width
-        love.graphics.setColor(color[1], color[2], color[3], 0.7)
+        love.graphics.setColor(color[1] * alpha, color[2] * alpha, color[3] * alpha, 0.7)
         love.graphics.rectangle("fill", self.x, self.y, progress_width, self.height)
     end
     
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(1 * alpha, 1 * alpha, 1 * alpha)
     local label = (self.getDisplayLabel and self:getDisplayLabel()) or self.label
     love.graphics.print(label, self.x + 5, self.y + 5)
     love.graphics.print(string.format("%.1f/%.0f", self.progress, self.cost), self.x + 5, self.y + 20)
+    
+    if not self.active then
+        love.graphics.setColor(1, 0, 0)
+        love.graphics.print("INACTIVE", self.x + 5, self.y + 35)
+    end
     
     if self.completed then
         love.graphics.setColor(0, 1, 0)

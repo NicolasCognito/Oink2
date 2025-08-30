@@ -57,7 +57,7 @@ function Bot:setupStates()
     
     self.state_machine:addState("delivering", {
         update = function(dt)
-            if not self.target_zone or not self:isInZone(self.target_zone) then
+            if not self.target_zone or not self:isInZone(self.target_zone) or not self.target_zone.active then
                 self.state_machine:setState("idle")
                 return
             end

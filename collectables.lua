@@ -12,6 +12,10 @@ function Collectable.new(x, y, type)
     if self.type == "coin" then
         self.color = {1, 1, 0}
         self.value = 1
+    elseif self.type == "egg" then
+        self.color = {1, 0.9, 0.7}
+        self.value = 2
+        self.radius = 6
     end
     
     return self
@@ -47,7 +51,7 @@ function CollectableManager.new()
     local self = setmetatable({}, CollectableManager)
     self.collectables = {}
     self.spawn_timer = 0
-    self.spawn_interval = 0.7
+    self.spawn_interval = 1.5
     self.max_collectables = 40
     return self
 end
@@ -83,6 +87,11 @@ function CollectableManager:spawnCollectable()
         "coin"
     )
     table.insert(self.collectables, collectable)
+end
+
+function CollectableManager:spawnEgg(x, y)
+    local egg = Collectable.new(x, y, "egg")
+    table.insert(self.collectables, egg)
 end
 
 function CollectableManager:draw()
