@@ -9,7 +9,7 @@ function Player.new(x, y)
     setmetatable(self, Player)
     
     self.base_capacity = self.capacity
-    self.auto_spend = true
+    self.collectable_manager = nil
     
     return self
 end
@@ -36,5 +36,20 @@ function Player:update(dt)
     self.y = math.max(self.radius, math.min(h - self.radius, self.y))
 end
 
+function Player:setCollectableManager(manager)
+    self.collectable_manager = manager
+end
+
+function Player:dropCoins()
+    if self.carried_coins <= 0 or not self.collectable_manager then
+        return
+    end
+    
+    local drop_amount = math.min(1, self.carried_coins)
+    self.carried_coins = self.carried_coins - drop_amount
+    self.inventory:removeItem("coins", drop_amount)
+    
+    self.collectable_manager:spawnCoin(self.x, self.y)
+end
 
 return Player

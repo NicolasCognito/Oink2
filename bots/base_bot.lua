@@ -57,68 +57,68 @@ function Bot:setupStates()
     
     self.state_machine:addState("delivering", {
         update = function(dt)
-            if not self.target_zone or not self:isInZone(self.target_zone) or not self.target_zone.active then
-                self.state_machine:setState("idle")
-                return
-            end
-            
-            if self.carried_coins > 0 and self.target_zone.progress < self.target_zone.cost then
-                local spend_amount = math.min(self.target_zone.spend_rate * dt, self.carried_coins, self.target_zone.cost - self.target_zone.progress)
-                self.target_zone.progress = self.target_zone.progress + spend_amount
-                self.carried_coins = self.carried_coins - spend_amount
-                
-                if self.target_zone.progress >= self.target_zone.cost then
-                    self.target_zone:onComplete(self)
-                end
-            end
-            
-            -- If the zone is completed or cannot accept more, move on.
-            if self.target_zone.completed or self.target_zone.progress >= self.target_zone.cost then
-                if self.carried_coins > 0 then
-                    -- Try another zone; otherwise go idle to collect more
-                    local next_zone = self:findNearestZone()
-                    if next_zone and next_zone ~= self.target_zone then
-                        self.target_zone = next_zone
-                        self.state_machine:setState("moving_to_zone")
-                        return
-                    end
-                end
-                self.target_zone = nil
-                self.state_machine:setState("idle")
-                return
-            end
-
-            if self.carried_coins == 0 then
-                self.target_zone = nil
-                self.state_machine:setState("idle")
-            end
+            -- Bots no longer spend coins directly in zones
+            -- They just collect coins for now (future: may drop coins when implemented)
+            self.target_zone = nil
+            self.state_machine:setState("idle")
         end
     })
 end
 
 function Bot:findCoinsOrZone()
-    if self.carried_coins >= self.capacity then
-        local zone = self:findNearestZone()
-        if zone then
-            self.target_zone = zone
-            self.state_machine:setState("moving_to_zone")
-        end
-    else
-        local coin_x, coin_y = self:findNearestCoin()
-        if coin_x then
-            self.target_x = coin_x
-            self.target_y = coin_y
-            self.state_machine:setState("moving_to_coin")
-        end
+    -- Bots only look for coins now, no zone interaction
+    local coin_x, coin_y = self:findNearestCoin()
+    if coin_x then
+        self.target_x = coin_x
+        self.target_y = coin_y
+        self.state_machine:setState("moving_to_coin")
     end
 end
 
 function Bot:findNearestCoin()
-    return nil, nil
+    if not self.collectable_manager or not self.collectable_manager.collectables then
+        return nil, nil
+    end
+    
+    local nearest_x, nearest_y = nil, nil
+    local nearest_distance = math.huge
+    
+    for _, coin in ipairs(self.collectable_manager.collectables) do
+        if not coin.collected then
+            local distance = self:distanceTo(coin.x, coin.y)
+            if distance < nearest_distance then
+                nearest_distance = distance
+                nearest_x = coin.x
+                nearest_y = coin.y
+            end
+        end
+    end
+    
+    return nearest_x, nearest_y
 end
 
 function Bot:findNearestZone()
-    return nil
+    if not self.zone_manager or not self.zone_manager.zones then
+        return nil
+    end
+    
+    local nearest_zone = nil
+    local nearest_distance = math.huge
+    
+    for _, zone in ipairs(self.zone_manager.zones) do
+        if zone.active and zone.active_for_bots and not zone.completed and zone.progress < zone.cost then
+            local zone_center_x = zone.x + zone.width / 2
+            local zone_center_y = zone.y + zone.height / 2
+            local distance = self:distanceTo(zone_center_x, zone_center_y)
+            
+            if distance < nearest_distance then
+                nearest_distance = distance
+                nearest_zone = zone
+            end
+        end
+    end
+    
+    return nearest_zone
 end
 
 function Bot:moveToTarget(dt)
@@ -147,6 +147,9 @@ function Bot:isInZone(zone)
 end
 
 function Bot:update(dt, collectable_manager, zone_manager)
+    self.collectable_manager = collectable_manager
+    self.zone_manager = zone_manager
+    
     if collectable_manager then
         local collected_item = collectable_manager:update(
             dt,
@@ -159,10 +162,6 @@ function Bot:update(dt, collectable_manager, zone_manager)
         if collected_item and collected_item.type == "coin" then
             self.carried_coins = math.min(self.capacity, self.carried_coins + collected_item.value)
         end
-    end
-    
-    if zone_manager then
-        self.zone_manager = zone_manager
     end
     
     self.state_machine:update(dt)

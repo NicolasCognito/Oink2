@@ -30,7 +30,7 @@ function love.keypressed(key)
         if game and game.toggleZoneActive then game:toggleZoneActive() end
     elseif key == "space" then
         if game and game.player then
-            game.player.auto_spend = not game.player.auto_spend
+            game.player:dropCoins()
         end
     end
 end

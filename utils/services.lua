@@ -7,5 +7,8 @@ local Services = {}
 Services.character_manager = CharacterManager.new()
 Services.bot_manager = BotManager.new()
 
+-- Wire up dependencies after all managers are created
+Services.bot_manager:setCharacterManager(Services.character_manager)
+
 return Services
 

@@ -16,6 +16,10 @@ function Collectable.new(x, y, type)
         self.color = {1, 0.9, 0.7}
         self.value = 2
         self.radius = 6
+    elseif self.type == "ruby" then
+        self.color = {1, 0.2, 0.3}
+        self.value = 5
+        self.radius = 5
     end
     
     return self
@@ -67,16 +71,39 @@ function CollectableManager:update(dt, player_x, player_y, collection_radius, pl
         local collectable = self.collectables[i]
         collectable:update(dt)
         
-        if collectable:canCollect(player_x, player_y, collection_radius) and player_coins < player_capacity then
+        if collectable.collected then
+            table.remove(self.collectables, i)
+        elseif collectable:canCollect(player_x, player_y, collection_radius) and player_coins < player_capacity then
             local value = collectable:collect()
             table.remove(self.collectables, i)
             return {type = collectable.type, value = value}
-        elseif collectable.collected then
-            table.remove(self.collectables, i)
         end
     end
     
     return nil
+end
+
+function CollectableManager:processZoneAbsorption(zone_manager)
+    if not zone_manager or not zone_manager.zones then return end
+    
+    for i = #self.collectables, 1, -1 do
+        local collectable = self.collectables[i]
+        if not collectable.collected then
+            for _, zone in ipairs(zone_manager.zones) do
+                if zone.active and self:isCollectableInZone(collectable, zone) then
+                    if zone:absorbCollectable(collectable) then
+                        table.remove(self.collectables, i)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
+
+function CollectableManager:isCollectableInZone(collectable, zone)
+    return collectable.x >= zone.x and collectable.x <= zone.x + zone.width and
+           collectable.y >= zone.y and collectable.y <= zone.y + zone.height
 end
 
 function CollectableManager:spawnCollectable()
@@ -92,6 +119,16 @@ end
 function CollectableManager:spawnEgg(x, y)
     local egg = Collectable.new(x, y, "egg")
     table.insert(self.collectables, egg)
+end
+
+function CollectableManager:spawnRuby(x, y)
+    local ruby = Collectable.new(x, y, "ruby")
+    table.insert(self.collectables, ruby)
+end
+
+function CollectableManager:spawnCoin(x, y)
+    local coin = Collectable.new(x, y, "coin")
+    table.insert(self.collectables, coin)
 end
 
 function CollectableManager:draw()
