@@ -10,6 +10,9 @@ function Player.new(x, y)
     
     self.base_capacity = self.capacity
     self.collectable_manager = nil
+    self.auto_drop = false
+    self.drop_timer = 0
+    self.drop_interval = 0.1
     
     return self
 end
@@ -34,6 +37,15 @@ function Player:update(dt)
     local w, h = love.graphics.getDimensions()
     self.x = math.max(self.radius, math.min(w - self.radius, self.x))
     self.y = math.max(self.radius, math.min(h - self.radius, self.y))
+    
+    -- Auto drop coins via inventory
+    if self.auto_drop and self.inventory:getQuantity("coin") > 0 then
+        self.drop_timer = self.drop_timer + dt
+        if self.drop_timer >= self.drop_interval then
+            self:dropCoins()
+            self.drop_timer = 0
+        end
+    end
 end
 
 function Player:setCollectableManager(manager)
@@ -41,15 +53,16 @@ function Player:setCollectableManager(manager)
 end
 
 function Player:dropCoins()
-    if self.carried_coins <= 0 or not self.collectable_manager then
-        return
-    end
-    
-    local drop_amount = math.min(1, self.carried_coins)
-    self.carried_coins = self.carried_coins - drop_amount
-    self.inventory:removeItem("coins", drop_amount)
-    
+    if not self.collectable_manager then return end
+    local coins = self.inventory:getQuantity("coin")
+    if coins <= 0 then return end
+    self.inventory:removeItem("coin", 1)
     self.collectable_manager:spawnCoin(self.x, self.y)
+end
+
+function Player:toggleAutoDrop()
+    self.auto_drop = not self.auto_drop
+    self.drop_timer = 0
 end
 
 return Player

@@ -5,6 +5,7 @@ function BotManager.new()
     local self = setmetatable({}, BotManager)
     self.bots = {}
     self.character_manager = nil
+    self.default_accepted_items = nil
     return self
 end
 
@@ -19,6 +20,9 @@ function BotManager:addBot(x, y)
     else
         local Bot = require("bots.base_bot")
         bot = Bot.new(x, y)
+    end
+    if self.default_accepted_items and bot.setAcceptedItems then
+        bot:setAcceptedItems(self.default_accepted_items)
     end
     table.insert(self.bots, bot)
     return bot
@@ -39,6 +43,15 @@ function BotManager:removeBot(bot)
                 self.character_manager:removeCharacter(bot)
             end
             break
+        end
+    end
+end
+
+function BotManager:setDefaultAcceptedItems(items)
+    self.default_accepted_items = items or nil
+    for _, bot in ipairs(self.bots) do
+        if bot.setAcceptedItems then
+            bot:setAcceptedItems(items)
         end
     end
 end

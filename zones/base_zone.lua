@@ -1,4 +1,5 @@
 local Inventory = require("inventory")
+local ZoneGraphics = require("graphics.zone_graphics")
 
 local Zone = {}
 Zone.__index = Zone
@@ -77,42 +78,7 @@ function Zone:onComplete(player)
 end
 
 function Zone:draw()
-    local color = (self.getDisplayColor and self:getDisplayColor()) or self.color
-    
-    -- Dim inactive zones
-    local alpha = self.active and 1.0 or 0.3
-    
-    love.graphics.setColor(color[1] * 0.3 * alpha, color[2] * 0.3 * alpha, color[3] * 0.3 * alpha)
-    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-    
-    love.graphics.setColor(color[1] * alpha, color[2] * alpha, color[3] * alpha)
-    love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
-    
-    if self.progress > 0 and not self.completed then
-        local progress_width = (self.progress / self.cost) * self.width
-        love.graphics.setColor(color[1] * alpha, color[2] * alpha, color[3] * alpha, 0.7)
-        love.graphics.rectangle("fill", self.x, self.y, progress_width, self.height)
-    end
-    
-    love.graphics.setColor(1 * alpha, 1 * alpha, 1 * alpha)
-    local label = (self.getDisplayLabel and self:getDisplayLabel()) or self.label
-    love.graphics.print(label, self.x + 5, self.y + 5)
-    love.graphics.print(string.format("%.1f/%.0f", self.progress, self.cost), self.x + 5, self.y + 20)
-    
-    if not self.active then
-        love.graphics.setColor(1, 0, 0)
-        love.graphics.print("INACTIVE", self.x + 5, self.y + 35)
-    end
-    
-    if not self.active_for_bots then
-        love.graphics.setColor(1, 0.5, 0)
-        love.graphics.print("BOTS OFF", self.x + 5, self.y + 50)
-    end
-    
-    if self.completed then
-        love.graphics.setColor(0, 1, 0)
-        love.graphics.print("BUILT!", self.x + self.width/2 - 20, self.y + self.height/2)
-    end
+    ZoneGraphics.drawBase(self)
 
     if self.drawExtra then
         self:drawExtra()

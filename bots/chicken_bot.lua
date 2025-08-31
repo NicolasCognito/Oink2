@@ -1,5 +1,6 @@
 local StateMachine = require("utils.state_machine")
 local Character = require("character")
+local CharacterGraphics = require("graphics.character_graphics")
 
 local ChickenBot = {}
 ChickenBot.__index = ChickenBot
@@ -102,19 +103,7 @@ function ChickenBot:update(dt, collectable_manager, zone_manager)
 end
 
 function ChickenBot:draw()
-    love.graphics.setColor(self.color)
-    love.graphics.circle("fill", self.x, self.y, self.radius)
-    
-    love.graphics.setColor(1, 0.8, 0)
-    love.graphics.circle("fill", self.x - 3, self.y - 3, 2)
-    
-    love.graphics.setColor(1, 0.5, 0)
-    local beak_x = self.x - self.radius + 2
-    local beak_y = self.y
-    love.graphics.polygon("fill", beak_x, beak_y, beak_x - 4, beak_y - 2, beak_x - 4, beak_y + 2)
-    
-    love.graphics.setColor(0.8, 0.8, 0.8)
-    love.graphics.print(self.state_machine:getCurrentState(), self.x - 20, self.y + 20)
+    CharacterGraphics.drawChicken(self)
 end
 
 return ChickenBot

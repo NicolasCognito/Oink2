@@ -1,3 +1,5 @@
+local CollectableGraphics = require("graphics.collectable_graphics")
+
 local Collectable = {}
 Collectable.__index = Collectable
 
@@ -12,14 +14,17 @@ function Collectable.new(x, y, type)
     if self.type == "coin" then
         self.color = {1, 1, 0}
         self.value = 1
+        self.weight = 1.0
     elseif self.type == "egg" then
         self.color = {1, 0.9, 0.7}
         self.value = 2
         self.radius = 6
+        self.weight = 0.5
     elseif self.type == "ruby" then
         self.color = {1, 0.2, 0.3}
         self.value = 5
         self.radius = 5
+        self.weight = 2.0
     end
     
     return self
@@ -30,10 +35,7 @@ function Collectable:update(dt)
 end
 
 function Collectable:draw()
-    if self.collected then return end
-    
-    love.graphics.setColor(self.color)
-    love.graphics.circle("fill", self.x, self.y, self.radius)
+    CollectableGraphics.draw(self)
 end
 
 function Collectable:canCollect(player_x, player_y, collection_radius)
@@ -60,7 +62,7 @@ function CollectableManager.new()
     return self
 end
 
-function CollectableManager:update(dt, player_x, player_y, collection_radius, player_capacity, player_coins)
+function CollectableManager:update(dt, player_x, player_y, collection_radius, player_inventory)
     self.spawn_timer = self.spawn_timer + dt
     if self.spawn_timer >= self.spawn_interval and #self.collectables < self.max_collectables then
         self.spawn_timer = 0
@@ -73,10 +75,13 @@ function CollectableManager:update(dt, player_x, player_y, collection_radius, pl
         
         if collectable.collected then
             table.remove(self.collectables, i)
-        elseif collectable:canCollect(player_x, player_y, collection_radius) and player_coins < player_capacity then
-            local value = collectable:collect()
-            table.remove(self.collectables, i)
-            return {type = collectable.type, value = value}
+        elseif collectable:canCollect(player_x, player_y, collection_radius) then
+            -- Check if player can carry this item's weight
+            if player_inventory:canAddItem(collectable.type, collectable.value, collectable.weight) then
+                local value = collectable:collect()
+                table.remove(self.collectables, i)
+                return {type = collectable.type, value = value, weight = collectable.weight}
+            end
         end
     end
     

@@ -8,6 +8,7 @@ setmetatable(BuildZone, {__index = Zone})
 function BuildZone.new(x, y, width, height, cost, label, color)
     local self = Zone.new(x, y, width, height, cost, label, color)
     setmetatable(self, BuildZone)
+    self:setAcceptedItems({coin = true})
     return self
 end
 

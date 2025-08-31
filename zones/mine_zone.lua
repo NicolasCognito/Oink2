@@ -1,4 +1,5 @@
 local Zone = require("zones.base_zone")
+local ZoneGraphics = require("graphics.zone_graphics")
 
 local MineZone = {}
 MineZone.__index = MineZone
@@ -13,6 +14,7 @@ function MineZone.new(x, y, width, height, work_required, label, color)
     self.ruby_spawn_radius = 50
     self.collectable_manager = nil
     self.active_for_bots = false
+    self:setAcceptedItems({})
     
     return self
 end
@@ -73,10 +75,7 @@ function MineZone:getDisplayColor()
 end
 
 function MineZone:drawExtra()
-    if self.progress > 0 and not self.completed then
-        love.graphics.setColor(1, 1, 0, 0.7)
-        love.graphics.print("WORKING...", self.x + 5, self.y + 35)
-    end
+    ZoneGraphics.drawMineExtra(self)
 end
 
 return MineZone

@@ -1,5 +1,6 @@
 local Zone = require("zones.base_zone")
 local Services = require("utils.services")
+local ZoneGraphics = require("graphics.zone_graphics")
 
 local UpgradeZone = {}
 UpgradeZone.__index = UpgradeZone
@@ -13,6 +14,7 @@ function UpgradeZone.new(x, y, width, height, cost, label, color, capacity_upgra
     self.range_upgrade = range_upgrade or 10.0
     self.modes = {"capacity", "speed", "range"}
     self.mode_index = 1
+    self:setAcceptedItems({coin = true})
     return self
 end
 
@@ -68,19 +70,7 @@ function UpgradeZone:getDisplayColor()
 end
 
 function UpgradeZone:drawExtra()
-    local mode = self:getCurrentMode()
-    local info
-    if mode == "capacity" then
-        info = string.format("+%.0f capacity", self.capacity_upgrade)
-    elseif mode == "speed" then
-        info = string.format("+%.0f speed", self.speed_upgrade)
-    elseif mode == "range" then
-        info = string.format("+%.0f range", self.range_upgrade)
-    end
-    if info then
-        love.graphics.setColor(1,1,1)
-        love.graphics.print(info, self.x + 5, self.y + 35)
-    end
+    ZoneGraphics.drawUpgradeExtra(self)
 end
 
 return UpgradeZone
