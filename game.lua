@@ -24,7 +24,7 @@ function Game.new()
         {1, 0.8, 0.2},
         5.0
     )
-    upgrade_zone:setAcceptedItems({coins = true})
+    upgrade_zone:setAcceptedItems({coin = true})
     self.zone_manager:addZone(upgrade_zone)
     
     local build_zone = BuildZone.new(
@@ -32,7 +32,7 @@ function Game.new()
         "Build Bot",
         {0.2, 0.8, 0.4}
     )
-    build_zone:setAcceptedItems({coins = true})
+    build_zone:setAcceptedItems({coin = true})
     self.zone_manager:addZone(build_zone)
     
     local mine_zone = MineZone.new(
